@@ -1,0 +1,360 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Submit the URL",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Job Description",
+              "placeholder": "Enter the Job description of the role that you're applying for",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Resume",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        304
+      ],
+      "id": "94796407-bc8e-44ba-8910-d9087325c395",
+      "name": "On form submission",
+      "webhookId": "5a0e5759-ecf9-4434-a660-18fead723560"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash-lite"
+        },
+        "text": "=Read the data present in the Job description - {{ $json['Job Description'] }} and Resume - {{ $json.text }} and suggest what keywords can be used to enhance the Resume. \n\nOnly output the top 10 keywords that has to be updated and not more than that.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -400
+      ],
+      "id": "691fe418-3cee-4c7e-bbfb-b1e060c6df26",
+      "name": "Analyze document",
+      "executeOnce": false,
+      "retryOnFail": false,
+      "alwaysOutputData": false,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "sLzTwb4RjE895C1h",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=Resume",
+        "options": {
+          "keepSource": "json"
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        304
+      ],
+      "id": "14809500-a95c-4b82-808b-dbbbf44a0341",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=Read the Job description - {{ $json['Job Description'] }} and the Resume - {{ $json.text }}. Assume you a resume screener. Tell me the probability of this resume getting shortlisted.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -192
+      ],
+      "id": "cbab6ccc-3e21-4eeb-a0b4-32d60d0ed093",
+      "name": "Analyze document1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "sLzTwb4RjE895C1h",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "1270412548",
+        "text": "={{ $json.content.parts[0].text }}",
+        "additionalFields": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        -400
+      ],
+      "id": "5037c4cb-1563-45bb-8ad5-d3490fa23528",
+      "name": "Send a text message",
+      "webhookId": "1082943a-b42d-467a-83a0-14a08202362a",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "1270412548",
+        "text": "={{ $json.content.parts[0].text }}",
+        "additionalFields": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        -192
+      ],
+      "id": "5e646101-d097-4995-b87b-4c2837b09eae",
+      "name": "Send a text message1",
+      "webhookId": "1082943a-b42d-467a-83a0-14a08202362a",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "1270412548",
+        "text": "={{ $json.output[0].content[0].text }}",
+        "additionalFields": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        256
+      ],
+      "id": "14fba07c-de9d-4f67-9de8-d5bbc2d4d6c0",
+      "name": "Required Keywords Message",
+      "webhookId": "1082943a-b42d-467a-83a0-14a08202362a",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1270412548",
+        "text": "={{ $json.output[0].content[0].text }}",
+        "additionalFields": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        416
+      ],
+      "id": "7d5837af-9b4e-4c81-9705-0a8ac34f37dc",
+      "name": "Probability of getting shortlisted message",
+      "webhookId": "1082943a-b42d-467a-83a0-14a08202362a",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Read the Job description - {{ $json['Job Description'] }} and the Resume - {{ $json.text }}. Assume you a resume screener. Tell me the probability of this resume getting shortlisted."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        416
+      ],
+      "id": "d21591b0-cede-4164-a965-1de83b61bf5f",
+      "name": "Probability of getting shortlisted",
+      "credentials": {
+        "openAiApi": {
+          "id": "DXoSGdUdz0uakATL",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Read the data present in the Job description - {{ $json['Job Description'] }} and Resume - {{ $json.text }} and suggest what keywords can be used to enhance the Resume. \n\nOnly output the top 10 keywords that has to be updated and not more than that."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        256
+      ],
+      "id": "317fea8a-2542-4bd2-aae5-8fcd7ca7d829",
+      "name": "Required Keywords",
+      "credentials": {
+        "openAiApi": {
+          "id": "DXoSGdUdz0uakATL",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Required Keywords",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Probability of getting shortlisted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Probability of getting shortlisted": {
+      "main": [
+        [
+          {
+            "node": "Probability of getting shortlisted message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Required Keywords": {
+      "main": [
+        [
+          {
+            "node": "Required Keywords Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b149c148-e650-4307-82b5-89f0b6aeee60",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43485f2e593faeca92d9da1ff49d1b6dfd5abc7e2dac6263b798cf8e8bfa83c8"
+  },
+  "id": "CrFirDGIw9YaPAhW",
+  "tags": []
+}
