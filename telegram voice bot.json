@@ -1,0 +1,339 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "chatIds": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "debd8c7d-f2ac-46cf-a8b5-82e9a510890c",
+      "name": "Telegram Trigger",
+      "webhookId": "c428ec27-7dc0-4aad-ae3b-fb3090a067de",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8c996c1c-e706-4a2e-bd31-a288b28e1039",
+      "name": "Get a file",
+      "webhookId": "0da9779c-a206-4d9d-bcc5-d5a218dcbb4d",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-latest"
+        },
+        "inputType": "binary",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "f049f33d-23dd-49b0-b15f-ae420024a552",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DHIkPaGXxSFvNSEQ",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.candidates[0].content.parts[0].text }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant who will help me do the research. You can connect with Open AI or perplexity to do the research & give me the output. Ensure that the output is simple to understand so that even a 5th standard guy can understand\n\nKeep the character limit to 300 only and this is a very strict warning. Ensure no special characters are present"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "49329d70-2102-4202-acf6-e92d67757ad4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "messages": {
+          "message": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message0_Text', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 1,
+      "position": [
+        800,
+        208
+      ],
+      "id": "46474c92-955f-43d1-9dd1-825e0c60372f",
+      "name": "Message a model in Perplexity",
+      "credentials": {
+        "perplexityApi": {
+          "id": "OhJ6hTGVqEEHvEts",
+          "name": "Perplexity account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        1024
+      ],
+      "id": "e4a9d055-deb8-4d5e-8249-15fed3757be7",
+      "name": "Send an audio file",
+      "webhookId": "f5ae0936-0a97-4f9c-b611-d466a3d51429",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        352,
+        1040
+      ],
+      "id": "d74ec1e0-4f89-4c70-a9cd-331249869787",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DHIkPaGXxSFvNSEQ",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "6af83761-87c1-47fa-a286-aa219eb06746",
+      "name": "Send a text message",
+      "webhookId": "3e83a2d9-f5d5-4b13-978c-b47142e155a7",
+      "credentials": {
+        "telegramApi": {
+          "id": "U6pSslQ0eM2aXRrR",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "input": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        832,
+        1024
+      ],
+      "id": "ddd2adca-2f6c-4a29-9fe7-1865d053ff2f",
+      "name": "Generate audio",
+      "credentials": {
+        "openAiApi": {
+          "id": "B9dK4398pXLM2vXr",
+          "name": "OpenAi account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        208
+      ],
+      "id": "e8ad51b4-2a5a-416b-b6c8-f306683eb8a8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "DXoSGdUdz0uakATL",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model in Perplexity": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Generate audio": {
+      "main": [
+        [
+          {
+            "node": "Send an audio file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "896c22a4-d13e-45ca-a193-206b78e73034",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43485f2e593faeca92d9da1ff49d1b6dfd5abc7e2dac6263b798cf8e8bfa83c8"
+  },
+  "id": "AgvNW2JA5jarTKYF",
+  "tags": []
+}
